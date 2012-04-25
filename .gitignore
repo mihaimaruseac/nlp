@@ -1,1 +1,4 @@
-./testcase/
+/test_case/
+*.pyc
+*.pyo
+.*.sw*
