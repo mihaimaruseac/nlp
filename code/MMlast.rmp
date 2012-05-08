@@ -5,7 +5,7 @@
     <output/>
     <macros/>
   </context>
-  <operator activated="true" class="process" compatibility="5.2.003" expanded="true" name="Process">
+  <operator activated="true" class="process" compatibility="5.2.003" expanded="true" name="MetaCognitionEvaluation">
     <parameter key="logverbosity" value="init"/>
     <parameter key="random_seed" value="2001"/>
     <parameter key="send_mail" value="never"/>
@@ -13,16 +13,15 @@
     <parameter key="process_duration_for_mail" value="30"/>
     <parameter key="encoding" value="SYSTEM"/>
     <parameter key="parallelize_main_process" value="false"/>
-    <process expanded="true" height="370" width="550">
-      <operator activated="true" class="text:process_document_from_file" compatibility="5.2.001" expanded="true" height="76" name="Process Documents from Files" width="90" x="45" y="30">
-        <list key="text_directories">
-          <parameter key="Stardust" value="/data/facultate/5/nlp/nlp/test_case/en/1"/>
-        </list>
-        <parameter key="file_pattern" value="student*"/>
+    <process expanded="true" height="449" width="550">
+      <operator activated="true" class="text:read_document" compatibility="5.2.001" expanded="true" height="60" name="ReadOriginal" width="90" x="45" y="30">
+        <parameter key="file" value="/data/facultate/5/nlp/nlp/test_case/en/1/original"/>
         <parameter key="extract_text_only" value="true"/>
         <parameter key="use_file_extension_as_type" value="true"/>
         <parameter key="content_type" value="txt"/>
         <parameter key="encoding" value="SYSTEM"/>
+      </operator>
+      <operator activated="true" class="text:process_documents" compatibility="5.2.001" expanded="true" height="94" name="Process Documents" width="90" x="179" y="30">
         <parameter key="create_word_vector" value="true"/>
         <parameter key="vector_creation" value="TF-IDF"/>
         <parameter key="add_meta_information" value="true"/>
@@ -35,25 +34,74 @@
         <parameter key="datamanagement" value="double_sparse_array"/>
         <parameter key="parallelize_vector_creation" value="true"/>
         <process expanded="true" height="453" width="622">
-          <operator activated="true" class="text:tokenize" compatibility="5.2.001" expanded="true" height="60" name="Tokenize" width="90" x="179" y="30">
+          <operator activated="true" class="text:transform_cases" compatibility="5.2.001" expanded="true" height="60" name="Transform Cases (2)" width="90" x="45" y="30">
+            <parameter key="transform_to" value="lower case"/>
+          </operator>
+          <operator activated="true" class="text:tokenize" compatibility="5.2.001" expanded="true" height="60" name="Tokenize (2)" width="90" x="179" y="30">
             <parameter key="mode" value="non letters"/>
             <parameter key="characters" value=".:"/>
             <parameter key="language" value="English"/>
             <parameter key="max_token_length" value="3"/>
           </operator>
-          <connect from_port="document" to_op="Tokenize" to_port="document"/>
-          <connect from_op="Tokenize" from_port="document" to_port="document 1"/>
+          <operator activated="true" class="text:filter_stopwords_english" compatibility="5.2.001" expanded="true" height="60" name="Filter Stopwords (English)" width="90" x="313" y="30"/>
+          <connect from_port="document" to_op="Transform Cases (2)" to_port="document"/>
+          <connect from_op="Transform Cases (2)" from_port="document" to_op="Tokenize (2)" to_port="document"/>
+          <connect from_op="Tokenize (2)" from_port="document" to_op="Filter Stopwords (English)" to_port="document"/>
+          <connect from_op="Filter Stopwords (English)" from_port="document" to_port="document 1"/>
           <portSpacing port="source_document" spacing="0"/>
           <portSpacing port="sink_document 1" spacing="0"/>
           <portSpacing port="sink_document 2" spacing="0"/>
         </process>
       </operator>
-      <connect from_op="Process Documents from Files" from_port="example set" to_port="result 1"/>
-      <connect from_op="Process Documents from Files" from_port="word list" to_port="result 2"/>
+      <operator activated="true" class="text:read_document" compatibility="5.2.001" expanded="true" height="60" name="ReadStudent" width="90" x="45" y="165">
+        <parameter key="file" value="/data/facultate/5/nlp/nlp/test_case/en/1/student1"/>
+        <parameter key="extract_text_only" value="true"/>
+        <parameter key="use_file_extension_as_type" value="true"/>
+        <parameter key="content_type" value="txt"/>
+        <parameter key="encoding" value="SYSTEM"/>
+      </operator>
+      <operator activated="true" class="text:process_documents" compatibility="5.2.001" expanded="true" height="94" name="Process Documents (2)" width="90" x="179" y="165">
+        <parameter key="create_word_vector" value="true"/>
+        <parameter key="vector_creation" value="TF-IDF"/>
+        <parameter key="add_meta_information" value="true"/>
+        <parameter key="keep_text" value="true"/>
+        <parameter key="prune_method" value="none"/>
+        <parameter key="prunde_below_percent" value="3.0"/>
+        <parameter key="prune_above_percent" value="30.0"/>
+        <parameter key="prune_below_rank" value="0.05"/>
+        <parameter key="prune_above_rank" value="0.05"/>
+        <parameter key="datamanagement" value="double_sparse_array"/>
+        <parameter key="parallelize_vector_creation" value="true"/>
+        <process expanded="true" height="453" width="622">
+          <operator activated="true" class="text:transform_cases" compatibility="5.2.001" expanded="true" height="60" name="Transform Cases (3)" width="90" x="45" y="30">
+            <parameter key="transform_to" value="lower case"/>
+          </operator>
+          <operator activated="true" class="text:tokenize" compatibility="5.2.001" expanded="true" height="60" name="Tokenize (3)" width="90" x="180" y="30">
+            <parameter key="mode" value="non letters"/>
+            <parameter key="characters" value=".:"/>
+            <parameter key="language" value="English"/>
+            <parameter key="max_token_length" value="3"/>
+          </operator>
+          <operator activated="true" class="text:filter_stopwords_english" compatibility="5.2.001" expanded="true" height="60" name="Filter Stopwords (2)" width="90" x="401" y="30"/>
+          <connect from_port="document" to_op="Transform Cases (3)" to_port="document"/>
+          <connect from_op="Transform Cases (3)" from_port="document" to_op="Tokenize (3)" to_port="document"/>
+          <connect from_op="Tokenize (3)" from_port="document" to_op="Filter Stopwords (2)" to_port="document"/>
+          <connect from_op="Filter Stopwords (2)" from_port="document" to_port="document 1"/>
+          <portSpacing port="source_document" spacing="0"/>
+          <portSpacing port="sink_document 1" spacing="0"/>
+          <portSpacing port="sink_document 2" spacing="0"/>
+        </process>
+      </operator>
+      <connect from_op="ReadOriginal" from_port="output" to_op="Process Documents" to_port="documents 1"/>
+      <connect from_op="Process Documents" from_port="example set" to_port="result 3"/>
+      <connect from_op="Process Documents" from_port="word list" to_port="result 1"/>
+      <connect from_op="ReadStudent" from_port="output" to_op="Process Documents (2)" to_port="documents 1"/>
+      <connect from_op="Process Documents (2)" from_port="word list" to_port="result 2"/>
       <portSpacing port="source_input 1" spacing="0"/>
       <portSpacing port="sink_result 1" spacing="0"/>
       <portSpacing port="sink_result 2" spacing="0"/>
       <portSpacing port="sink_result 3" spacing="0"/>
+      <portSpacing port="sink_result 4" spacing="0"/>
     </process>
   </operator>
 </process>
