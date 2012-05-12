@@ -5,9 +5,12 @@ import os
 
 OUTPUTSDIR='tcase/outputs/'
 HEATDIR='tcase/heatmaps/'
+eps = .1
+MAX = -42424242
+MIN = 42424242
 
 class SimMatrix:
-    def __init__(self, simName, eMax=False):
+    def __init__(self, simName, eMax=True):
         self.simName = simName
         self._m = {}
         self._N = 0
@@ -28,21 +31,32 @@ class SimMatrix:
             self._m[i] = {}
         if not self._m[i].has_key(j):
             self._m[i][j] = {}
+        if (not self._max) and i != j:
+            v = 1.0 / (eps + v)
         self._m[i][j] = v
 
     def __str__(self):
         return self.simName + '\n' + self.content() + '\n'
 
-    def content(self):
+    def content(self, hmap=False):
+        _f_ = lambda x: x
+        if hmap:
+            m, M = MIN, MAX
+            for i in range(self._N):
+                for j in range(self._N):
+                    m = min(m, self._m[i][j])
+                    M = max(M, self._m[i][j])
+            if m != M:
+                _f_ = lambda x: (x - m) / (M - m)
         s = ''
         for i in range(self._N):
             s += '\t'
             for j in range(self._N):
-                s += '%8.4f' % (self._m[i][j] if self._max else -self._m[i][j])
+                s += '%8.4f' % _f_(self._m[i][j])
             s += '\n'
         return s[:-1]
 
-def read_sim_file(files, fname, eMax=False):
+def read_sim_file(files, fname, eMax=True):
     """
     Read filename, output similarity matrix.
     """
@@ -99,7 +113,7 @@ plot '-' matrix with image title "%s"
 %s
 e
 e
-        """ % (files, sims[k].content())
+        """ % (files, sims[k].content(hmap=True))
         with open("tmp", "w") as f:
             f.write(heat)
         os.system('gnuplot tmp > %s%s.png' % (HEATDIR, k))
