@@ -7,10 +7,11 @@ OUTPUTSDIR='tcase/outputs/'
 HEATDIR='tcase/heatmaps/'
 
 class SimMatrix:
-    def __init__(self, simName):
+    def __init__(self, simName, eMax=False):
         self.simName = simName
         self._m = {}
         self._N = 0
+        self._max = eMax
 
     def init_from_files(self, files):
         self._files = files
@@ -37,15 +38,15 @@ class SimMatrix:
         for i in range(self._N):
             s += '\t'
             for j in range(self._N):
-                s += '%8.4f' % self._m[i][j]
+                s += '%8.4f' % (self._m[i][j] if self._max else -self._m[i][j])
             s += '\n'
         return s[:-1]
 
-def read_sim_file(files, fname):
+def read_sim_file(files, fname, eMax=False):
     """
     Read filename, output similarity matrix.
     """
-    sm = SimMatrix(fname)
+    sm = SimMatrix(fname, eMax)
     sm.init_from_files(files)
     with open(OUTPUTSDIR + fname, 'r') as f:
         line = f.readline()
@@ -72,14 +73,14 @@ def read_files():
 
 def construct_sims(files):
     sims = {}
-    sims['MMMED'] = read_sim_file(files, 'MMMED')
+    sims['MMMED'] = read_sim_file(files, 'MMMED', False)
     sims['NumCos'] = read_sim_file(files, 'NumCos')
     sims['NumDicS'] = read_sim_file(files, 'NumDicS')
-    sims['NumED'] = read_sim_file(files, 'NumED')
+    sims['NumED'] = read_sim_file(files, 'NumED', False)
     sims['NumIPS'] = read_sim_file(files, 'NumIPS')
     sims['NumJacc'] = read_sim_file(files, 'NumJacc')
-    sims['NumKED_dot'] = read_sim_file(files, 'NumKED_dot')
-    sims['NumKED_r'] = read_sim_file(files, 'NumKED_r')
+    sims['NumKED_dot'] = read_sim_file(files, 'NumKED_dot', False)
+    sims['NumKED_r'] = read_sim_file(files, 'NumKED_r', False)
     sims['NumMPS'] = read_sim_file(files, 'NumMPS')
     sims['NumOS'] = read_sim_file(files, 'NumOS')
     return sims
