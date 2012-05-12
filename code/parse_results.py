@@ -5,6 +5,7 @@ import os
 
 OUTPUTSDIR='tcase/outputs/'
 HEATDIR='tcase/heatmaps/'
+TREEDIR='tcase/trees/'
 eps = .1
 MAX = -42424242
 MIN = 42424242
@@ -56,6 +57,32 @@ class SimMatrix:
             s += '\n'
         return s[:-1]
 
+    def _compute_adj(self):
+        adj = []
+        for i in range(self._N):
+            for j in range(i + 1, self._N):
+                adj.append((i, j, self._m[i][j]))
+        adj.sort(cmp=lambda x,y: 1 if x[2] < y[2] else -1 if x[2] > y[2] else 0)
+        return adj
+
+    def compute_apm(self):
+        apm = []
+        adj = self._compute_adj()
+        connecteds = {}
+        for i in range(self._N):
+            connecteds[i] = i
+        na = self._N - 1
+        while na > 0:
+            i, j, c = adj[0]
+            if connecteds[i] != connecteds[j]:
+                v = min(connecteds[i], connecteds[j])
+                connecteds[i] = v
+                connecteds[j] = v
+                na -= 1
+            apm.append((i, j, c))
+            adj = adj[1:]
+        return apm
+
 def read_sim_file(files, fname, eMax=True):
     """
     Read filename, output similarity matrix.
@@ -105,7 +132,7 @@ def output(files, sims):
         print v
 
 def heat_maps(files, sims):
-    for k in sims.keys():
+    for k in sims:
         heat = """
 set term png
 set key on
@@ -114,16 +141,27 @@ plot '-' matrix with image title "%s"
 e
 e
         """ % (files, sims[k].content(hmap=True))
-        with open("tmp", "w") as f:
+        with open('%s%s' % (HEATDIR, k), 'w') as f:
             f.write(heat)
-        os.system('gnuplot tmp > %s%s.png' % (HEATDIR, k))
-    os.system('rm tmp')
+        os.system('gnuplot %s%s > %s%s.png' % (HEATDIR, k, HEATDIR, k))
+
+def trees(files, sims):
+    for k in sims:
+        apm = sims[k].compute_apm()
+        s = 'graph %s {\n' % k
+        for i, j, c in apm:
+            s += '\t%s -- %s [label=%5.3f];\n' % (files[i + 1], files[j + 1], c)
+        s += '}'
+        with open('%s%s.dot' % (TREEDIR, k), 'w') as f:
+            f.write(s)
+        os.system('dot -Tpng %s%s.dot > %s%s.png' % (TREEDIR, k, TREEDIR, k))
 
 def main():
     files = read_files()
     sims = construct_sims(files)
     output(files, sims)
     heat_maps(files, sims)
+    trees(files, sims)
 
 if __name__ == '__main__':
     main()
